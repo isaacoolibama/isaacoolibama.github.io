@@ -121,7 +121,7 @@ img, svg { display: block; }
 }
 
 section {
-  padding: 100px 0;
+  padding: clamp(44px, 5vw, 70px) 0;
   position: relative;
 }
 
@@ -295,24 +295,21 @@ section {
   position: relative;
   width: 78%;
   aspect-ratio: 1 / 1;
-  border-radius: 28px;
-  padding: 4px;
-  background: var(--blue-deep);
-  border: 1px solid var(--border);
+  border-radius: 50%;
 }
 
 .avatar-frame img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 24px;
+  border-radius: 50%;
   background: var(--bg-alt);
 }
 
 .floaty {
   position: absolute;
-  width: 46px;
-  height: 46px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -321,21 +318,42 @@ section {
   justify-content: center;
   box-shadow: var(--shadow);
   animation: float 5s ease-in-out infinite;
+  translate: -50% -50%;
+  transition: background 0.25s ease, border-color 0.25s ease,
+              box-shadow 0.25s ease, scale 0.25s ease;
 }
-.floaty .ico { width: 20px; height: 20px; color: var(--cyan); flex-shrink: 0; }
-.floaty.f-inner { width: 36px; height: 36px; }
-.floaty.f-inner .ico { width: 16px; height: 16px; }
+.floaty .ico {
+  width: 26px;
+  height: 26px;
+  color: var(--cyan);
+  flex-shrink: 0;
+  transition: filter 0.25s ease;
+}
 
-.f1  { top: -6%;  left: 32%;   animation-delay: 0s; }
-.f2  { top: 4%;   right: -9%;  animation-delay: 0.5s; }
-.f3  { top: 34%;  right: -13%; animation-delay: 1s; }
-.f4  { top: 64%;  right: -9%;  animation-delay: 1.5s; }
-.f5  { bottom: -6%; left: 32%; animation-delay: 2s; }
-.f6  { bottom: 4%; left: -9%;  animation-delay: 2.5s; }
-.f7  { top: 34%;  left: -13%;  animation-delay: 3s; }
-.f8  { top: 4%;   left: -9%;   animation-delay: 3.5s; }
-.f9  { top: 14%;  right: 12%;  animation-delay: 1.2s; }
-.f10 { bottom: 14%; left: 12%; animation-delay: 2.8s; }
+/* neon no hover */
+.floaty:hover {
+  background: var(--surface-hover);
+  border-color: var(--cyan);
+  scale: 1.1;
+  box-shadow:
+    0 0 0 1px rgba(79, 209, 232, 0.35),
+    0 0 18px rgba(79, 209, 232, 0.45),
+    0 0 40px rgba(79, 209, 232, 0.2),
+    var(--shadow);
+}
+.floaty:hover .ico { filter: drop-shadow(0 0 7px rgba(79, 209, 232, 0.7)); }
+
+/* anel: 10 icones a cada 36deg num raio de 48% (a foto tem raio 39%) */
+.f1  { top: 2.0%; left: 50.0%; animation-delay: 0s; }
+.f2  { top: 11.2%; left: 78.2%; animation-delay: 1.5s; }
+.f3  { top: 35.2%; left: 95.7%; animation-delay: 3s; }
+.f4  { top: 64.8%; left: 95.7%; animation-delay: 0.6s; }
+.f5  { top: 88.8%; left: 78.2%; animation-delay: 2.1s; }
+.f6  { top: 98.0%; left: 50.0%; animation-delay: 3.6s; }
+.f7  { top: 88.8%; left: 21.8%; animation-delay: 1.2s; }
+.f8  { top: 64.8%; left: 4.3%; animation-delay: 2.7s; }
+.f9  { top: 35.2%; left: 4.3%; animation-delay: 4.2s; }
+.f10 { top: 11.2%; left: 21.8%; animation-delay: 0.9s; }
 
 @keyframes float {
   0%, 100% { transform: translateY(0); }
@@ -343,14 +361,19 @@ section {
 }
 
 @media (max-width: 860px) {
-  .floaty { width: 38px; height: 38px; }
-  .floaty .ico { width: 17px; height: 17px; }
-  .floaty.f-inner { width: 30px; height: 30px; }
-  .floaty.f-inner .ico { width: 14px; height: 14px; }
+  .floaty { width: 46px; height: 46px; }
+  .floaty .ico { width: 22px; height: 22px; }
 }
 
 @media (max-width: 560px) {
-  .f9, .f10, .f4, .f8 { display: none; }
+  /* mantem Sankhya, Oracle, Java, Python, SQL e Linux, redistribuidos a 60deg */
+  .f4, .f5, .f9, .f10 { display: none; }
+  .f1  { top: 2.0%; left: 50.0%; }
+  .f2  { top: 26.0%; left: 91.6%; }
+  .f3  { top: 74.0%; left: 91.6%; }
+  .f6  { top: 98.0%; left: 50.0%; }
+  .f7  { top: 74.0%; left: 8.4%; }
+  .f8  { top: 26.0%; left: 8.4%; }
 }
 
 .scroll-cue {
@@ -664,47 +687,6 @@ section {
   flex-shrink: 0;
 }
 
-/* ---------- side quests (games) ---------- */
-.quest-intro { color: var(--text-dim); max-width: 66ch; margin-bottom: 34px; }
-.quest-intro strong { color: var(--text); }
-
-.quest-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 18px;
-}
-
-.quest-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 22px 16px;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-  transition: transform 0.25s ease, border-color 0.25s ease;
-}
-.quest-card:hover { transform: translateY(-6px) rotate(-1deg); border-color: var(--cyan); }
-.quest-card::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: var(--blue-deep);
-  opacity: 0;
-  transition: opacity 0.25s ease;
-  z-index: -1;
-}
-.quest-card:hover::after { opacity: 0.5; }
-.quest-emoji { font-size: 2.2rem; margin-bottom: 10px; }
-.quest-name { font-weight: 700; font-size: 0.88rem; }
-.quest-tag {
-  font-family: var(--font-pixel);
-  font-size: 0.5rem;
-  color: var(--cyan);
-  margin-top: 8px;
-  letter-spacing: 0.03em;
-}
-
 /* ---------- contact ---------- */
 .contact-panel {
   background: var(--surface);
@@ -764,7 +746,11 @@ footer .heart { color: var(--cyan); }
   .hero-visual { order: -1; width: 60%; margin-inline: auto; }
   .nav-links { display: none; }
   .nav-toggle { display: flex; }
-  section { padding: 72px 0; }
+  /* no mobile o conteudo do hero passa da tela; centralizar jogava o topo
+     do anel para debaixo da nav */
+  .hero { align-items: flex-start; padding-top: 96px; padding-bottom: 56px; }
+  /* a seta ficava sobreposta ao texto assim que o hero estourava a altura */
+  .scroll-cue { display: none; }
 }
 
 @media (max-width: 860px) {
