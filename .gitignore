@@ -1,1 +1,7 @@
 /Curriculo_Isaac_Oolibama_Atualizado.docx
+
+# fonte do curriculo: nao publicar, so o PDF gerado em assets/files/
+/Curriculo_Isaac_Oolibama.docx
+
+# residuo, o projeto nao usa npm
+/package-lock.json
