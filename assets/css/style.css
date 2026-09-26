@@ -18,6 +18,7 @@
   --blue-deep: #123047;
   --cyan: #4fd1e8;
   --green: #34d399;
+  --orange: #f56a2f;
 
   --radius: 16px;
   --radius-sm: 10px;
@@ -521,6 +522,7 @@ section {
 .dot-case { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
 .dot-private { background: var(--blue); box-shadow: 0 0 8px var(--blue); }
 .dot-public { background: var(--green); box-shadow: 0 0 8px var(--green); }
+.dot-live { background: var(--orange); box-shadow: 0 0 8px var(--orange); }
 
 .project-grid {
   display: grid;
@@ -563,6 +565,7 @@ section {
 .badge-public { background: rgba(52, 211, 153, 0.14); color: var(--green); border: 1px solid rgba(52, 211, 153, 0.35); }
 .badge-private { background: rgba(47, 125, 192, 0.14); color: var(--blue); border: 1px solid rgba(47, 125, 192, 0.4); }
 .badge-case { background: rgba(79, 209, 232, 0.14); color: var(--cyan); border: 1px solid rgba(79, 209, 232, 0.4); }
+.badge-live { background: rgba(245, 106, 47, 0.14); color: var(--orange); border: 1px solid rgba(245, 106, 47, 0.4); }
 
 .project-star { display: flex; align-items: center; gap: 4px; color: var(--cyan); font-size: 0.8rem; font-weight: 700; }
 .project-star svg { width: 14px; height: 14px; }
