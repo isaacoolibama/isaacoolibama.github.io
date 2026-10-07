@@ -1,0 +1,29 @@
+{
+  "versao": "2.4.6",
+  "css": [
+    "vendor/remixicon/remixicon.css",
+    "vendor/tabler/tabler-icons.min.css",
+    "vendor/simple-icons/simple-icons.min.css",
+    "CTI_PainelTI.css"
+  ],
+  "scripts": [
+    "js/util.js",
+    "js/markdown.js",
+    "js/api.js",
+    "js/mock.js",
+    "js/fotos.js",
+    "js/select.js",
+    "js/dnd.js",
+    "js/presenca.js",
+    "js/desligados.js",
+    "js/visaogeral.js",
+    "js/kanban.js",
+    "js/demanda.js",
+    "js/documentos.js",
+    "js/cofre.js",
+    "js/hostgator.js",
+    "vendor/icones-catalogo.js",
+    "js/config.js",
+    "js/app.js"
+  ]
+}

@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gestão de TI — demonstração ao vivo | Isaac Oolibama</title>
+  <meta name="description" content="Add-on para o ERP Sankhya: Kanban de demandas, documentação técnica e cofre de acessos. Demonstração com dados fictícios, direto no navegador.">
+  <meta property="og:title" content="Painel de Gestão de TI — demonstração ao vivo">
+  <meta property="og:description" content="Add-on para o ERP Sankhya rodando no navegador com dados fictícios.">
+  <meta property="og:image" content="https://isaacoolibama.github.io/assets/img/og-preview.jpg">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23090d12'/%3E%3Ctext x='50' y='68' font-size='58' font-family='monospace' font-weight='700' text-anchor='middle' fill='%234fd1e8'%3EI%3C/text%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@600&display=swap" rel="stylesheet">
+  <style>
+    /* Mesmos tokens do portfólio (assets/css/style.css). */
+    :root {
+      --bg: #090d12;
+      --surface: #131a22;
+      --surface-hover: #1a232d;
+      --border: #223040;
+      --text: #e8edf2;
+      --text-dim: #93a3b3;
+      --cyan: #4fd1e8;
+      --radius-sm: 10px;
+      --font-display: "Space Grotesk", "Segoe UI", sans-serif;
+      --font-body: "Inter", "Segoe UI", sans-serif;
+      /* Janela do ERP: cinza claro neutro, como a área de trabalho de um ERP web. */
+      --erp-barra: #eef1f4;
+      --erp-borda: #d5dbe1;
+      --erp-texto: #3b4652;
+      --erp-aba: #ffffff;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      display: flex; flex-direction: column;
+      background: var(--bg); color: var(--text);
+      font: 14px/1.5 var(--font-body);
+    }
+    a { color: inherit; }
+    :focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+    .topo {
+      display: flex; align-items: center; gap: 12px 20px; flex-wrap: wrap;
+      padding: 10px 16px; border-bottom: 1px solid var(--border);
+    }
+    .voltar {
+      display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 10px;
+      color: var(--text-dim); text-decoration: none; border-radius: var(--radius-sm);
+    }
+    .voltar:hover { color: var(--text); background: var(--surface-hover); }
+    .voltar svg { width: 16px; height: 16px; }
+    .titulo { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-right: auto; }
+    .titulo h1 { margin: 0; font: 600 17px/1.2 var(--font-display); }
+    .selo {
+      font-size: 12px; color: var(--cyan); padding: 2px 10px; border-radius: 999px;
+      background: rgba(79, 209, 232, 0.12); border: 1px solid rgba(79, 209, 232, 0.4);
+    }
+    .controles { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .controles label { color: var(--text-dim); font-size: 13px; }
+    select, .botao {
+      min-height: 36px; padding: 0 12px; border-radius: var(--radius-sm);
+      background: var(--surface); color: var(--text); border: 1px solid var(--border);
+      font: inherit; font-size: 13px; cursor: pointer;
+    }
+    select:hover, .botao:hover { background: var(--surface-hover); }
+    .botao { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+    .botao svg { width: 15px; height: 15px; }
+
+    details.dicas { position: relative; }
+    details.dicas summary { list-style: none; }
+    details.dicas summary::-webkit-details-marker { display: none; }
+    .dicas-caixa {
+      position: absolute; right: 0; top: calc(100% + 8px); z-index: 10; width: min(360px, calc(100vw - 32px));
+      padding: 14px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm);
+      box-shadow: 0 20px 60px -20px rgba(0, 0, 0, 0.8);
+    }
+    .dicas-caixa ul { margin: 0; padding-left: 18px; color: var(--text-dim); font-size: 13px; }
+    .dicas-caixa li + li { margin-top: 6px; }
+    .dicas-caixa strong { color: var(--text); font-weight: 600; }
+
+    .aviso {
+      margin: 0; padding: 6px 16px; font-size: 12.5px; color: var(--text-dim);
+      background: var(--surface); border-bottom: 1px solid var(--border);
+    }
+
+    /* Janela do ERP em volta da tela personalizada. */
+    .janela {
+      flex: 1; min-height: 0; display: flex; flex-direction: column;
+      margin: 12px 16px 16px; border: 1px solid var(--erp-borda); border-radius: var(--radius-sm); overflow: hidden;
+      background: var(--erp-barra);
+    }
+    .abas { display: flex; align-items: flex-end; gap: 2px; padding: 6px 8px 0; color: var(--erp-texto); font-size: 12.5px; }
+    .aba { padding: 6px 14px; border-radius: 6px 6px 0 0; white-space: nowrap; }
+    .aba.ativa { background: var(--erp-aba); border: 1px solid var(--erp-borda); border-bottom-color: var(--erp-aba); margin-bottom: -1px; font-weight: 600; }
+    .aba.inativa { opacity: 0.7; }
+    .area { flex: 1; min-height: 0; border-top: 1px solid var(--erp-borda); background: var(--erp-aba); }
+    iframe { display: block; width: 100%; height: 100%; border: 0; }
+
+    @media (max-width: 640px) {
+      .janela { margin: 8px; }
+      .aba.inativa { display: none; }
+      .controles { width: 100%; }
+      .controles select { flex: 1; }
+      /* O botão fica à esquerda no celular: a caixa abre para a direita. */
+      .dicas-caixa { left: 0; right: auto; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topo">
+    <a class="voltar" href="../../#projetos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      Portfólio
+    </a>
+    <div class="titulo">
+      <h1>Painel de Gestão de TI</h1>
+      <span class="selo">Add-on Sankhya · demonstração</span>
+    </div>
+    <div class="controles">
+      <label for="perfil">Entrar como</label>
+      <select id="perfil">
+        <option value="">Supervisor</option>
+        <option value="comum=1">Usuário comum</option>
+        <option value="semcofre=1">Sem acesso ao cofre</option>
+      </select>
+      <details class="dicas">
+        <summary class="botao">O que testar</summary>
+        <div class="dicas-caixa">
+          <ul>
+            <li><strong>Kanban:</strong> arraste demandas entre colunas e abra uma para ver checklist, comentários e histórico.</li>
+            <li><strong>Cofre:</strong> revele uma senha e veja os alertas de quem saiu da empresa.</li>
+            <li><strong>Tempo real:</strong> depois de 40 segundos, um funcionário é desligado e o aviso aparece sozinho.</li>
+            <li><strong>Permissões:</strong> troque em “Entrar como” e compare o que cada perfil pode fazer.</li>
+            <li><strong>Tema escuro:</strong> botão de lua ao lado do nome do usuário.</li>
+          </ul>
+        </div>
+      </details>
+      <a class="botao" id="tela-cheia" href="painel.html?mock=1" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+        Tela cheia
+      </a>
+    </div>
+  </header>
+  <p class="aviso">Dados fictícios. Tudo roda no seu navegador: o que você alterar some ao recarregar.</p>
+
+  <main class="janela" aria-label="Simulação da área de trabalho do ERP">
+    <div class="abas" aria-hidden="true">
+      <span class="aba inativa">Início</span>
+      <span class="aba inativa">Pedidos de venda</span>
+      <span class="aba ativa">Painel de Gestão de TI</span>
+    </div>
+    <div class="area">
+      <iframe id="painel" title="Painel de Gestão de TI" src="painel.html?mock=1"></iframe>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      var perfil = document.getElementById('perfil');
+      var painel = document.getElementById('painel');
+      var telaCheia = document.getElementById('tela-cheia');
+      function endereco() {
+        return 'painel.html?mock=1' + (perfil.value ? '&' + perfil.value : '');
+      }
+      perfil.addEventListener('change', function () {
+        painel.src = endereco();
+        telaCheia.href = endereco();
+      });
+    })();
+  </script>
+</body>
+</html>

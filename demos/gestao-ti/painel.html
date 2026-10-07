@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Painel de Gestão de TI — demonstração</title>
+  <!--
+    Carrega a tela real do add-on (painel/, gerada por scripts/gerar-demo-publica.py
+    no repositório gestao-ti) com o mock ligado. A ordem de CSS e scripts vem de
+    painel/demo.json, que replica o launcher do Om.
+  -->
+  <style>html, body { width: 100%; height: 100%; margin: 0; }</style>
+</head>
+<body>
+  <div id="raiz"></div>
+  <script>
+    (async function () {
+      // O painel só usa os dados de exemplo com ?mock=1; sem ele tentaria o servidor do Om.
+      if (!/[?&]mock=1\b/.test(location.search)) {
+        location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'mock=1' + location.hash);
+        return;
+      }
+      var base = 'painel/';
+      var resposta = await fetch(base + 'demo.json', { cache: 'no-store' });
+      if (!resposta.ok) { throw new Error('manifesto da demonstração não encontrado'); }
+      var demo = await resposta.json();
+      var v = '?v=' + encodeURIComponent(demo.versao);
+
+      demo.css.forEach(function (caminho) {
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = base + caminho + v;
+        document.head.appendChild(link);
+      });
+      document.getElementById('raiz').innerHTML = await (await fetch(base + 'CTI_PainelTI.html' + v)).text();
+      for (var i = 0; i < demo.scripts.length; i++) {
+        await new Promise(function (ok, erro) {
+          var s = document.createElement('script');
+          s.src = base + demo.scripts[i] + v;
+          s.onload = ok;
+          s.onerror = function () { erro(new Error('não carregou ' + s.src)); };
+          document.body.appendChild(s);
+        });
+      }
+      CtiApp.iniciar();
+      if (/[?&]escuro=1\b/.test(location.search)) {
+        setTimeout(function () {
+          var app = document.getElementById('g-app');
+          if (app && app.dataset.tema !== 'escuro') { document.getElementById('g-tema').click(); }
+        }, 50);
+      }
+    })().catch(function (erro) {
+      console.error(erro);
+      document.body.innerHTML = '<p style="font:15px system-ui;padding:24px">Parte da demonstração não carregou. Recarregue a página.</p>';
+    });
+  </script>
+</body>
+</html>

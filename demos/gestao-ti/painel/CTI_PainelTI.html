@@ -1,0 +1,436 @@
+<!--
+  Painel de Gestão de TI: Visão Geral, Kanban, Documentação e Configurações.
+
+  Padrão de tela HTML5 do Add-on Studio: o build publica esta pasta como
+  /$ctx/CTI_PainelTI.xhtml5. CSS entra por launcher/CTI_PainelTI.include; os
+  scripts por launcher/CTI_PainelTI.body; CTI_PainelTI.js é o módulo Angular.
+  Todas as classes usam o prefixo g- para não colidir com o CSS do Sankhya Om.
+  O conteúdo dinâmico é montado em js/*.js, sempre com escape (CtiUtil.esc).
+-->
+<sk-application ng-controller="CTI_PainelTIController as ctrl" creation-complete="ctrl.init()">
+<!-- Sem incluir/alterar/configurar até a sessão confirmar as permissões (CtiApp.carregarSessao). -->
+<div class="g-app g-sem-incluir g-sem-alterar g-sem-excluir g-sem-configurar" id="g-app">
+
+  <div class="g-veu" id="g-veu" hidden></div>
+
+  <!-- ============================== MENU LATERAL ============================== -->
+  <aside class="g-lateral" id="g-lateral" aria-label="Navegação">
+    <div class="g-marca">
+      <span class="g-marca__simbolo" aria-hidden="true"><i class="ti-device-desktop-cog"></i></span>
+      <span class="g-marca__nome">Gestão de TI</span>
+      <button type="button" class="g-icone-btn g-marca__recolher" id="g-recolher-menu"
+              aria-label="Recolher menu" title="Recolher menu" aria-expanded="true">
+        <i class="ri-menu-fold-line" aria-hidden="true"></i>
+      </button>
+    </div>
+
+    <nav class="g-menu">
+      <button type="button" class="g-menu__item g-menu__item--ativo" data-visao="visaogeral" aria-current="page">
+        <i class="ri-dashboard-3-line" aria-hidden="true"></i><span>Visão geral</span>
+      </button>
+      <button type="button" class="g-menu__item" data-visao="kanban">
+        <i class="ri-layout-column-line" aria-hidden="true"></i><span>Kanban</span>
+        <span class="g-menu__contador" id="g-menu-abertas" title="Demandas em aberto"></span>
+      </button>
+      <button type="button" class="g-menu__item" data-visao="documentos">
+        <i class="ri-book-2-line" aria-hidden="true"></i><span>Documentação</span>
+      </button>
+      <!-- Só para o SUP e o grupo do cofre (sessao.podeCofre); o servidor confere de novo. -->
+      <button type="button" class="g-menu__item" data-visao="cofre" id="g-menu-cofre" hidden>
+        <i class="ri-safe-2-line" aria-hidden="true"></i><span>Cofre</span>
+      </button>
+    </nav>
+
+    <!-- Rodapé: usuário à esquerda; tema e Configurações só com ícone à direita (recolhido: ícones acima do avatar). -->
+    <div class="g-eu" id="g-eu">
+      <span class="g-eu__quem">
+        <span class="g-avatar g-avatar--m" id="g-eu-avatar" aria-hidden="true">?</span>
+        <span class="g-eu__texto">
+          <strong id="g-eu-nome">Carregando…</strong>
+        </span>
+      </span>
+      <span class="g-eu__acoes">
+        <button type="button" class="g-eu__botao" id="g-tema" aria-label="Usar tema escuro" title="Usar tema escuro">
+          <i class="ri-moon-line" aria-hidden="true"></i>
+        </button>
+        <button type="button" class="g-menu__item g-eu__botao" data-visao="config" title="Configurações" aria-label="Configurações">
+          <i class="ri-settings-4-line" aria-hidden="true"></i>
+        </button>
+      </span>
+    </div>
+  </aside>
+
+  <!-- ================================= CONTEÚDO =============================== -->
+  <div class="g-principal">
+    <header class="g-topo">
+      <!-- Só aparece em tela estreita, onde o menu fica escondido. -->
+      <button type="button" class="g-icone-btn g-abrir-menu" id="g-alternar-menu" aria-label="Abrir menu">
+        <i class="ri-menu-2-line" aria-hidden="true"></i>
+      </button>
+      <!-- Busca por conteúdo: texto dos documentos, descrição, comentários e checklist das demandas. -->
+      <div class="g-busca-area">
+        <label class="g-busca">
+          <i class="ri-search-2-line" aria-hidden="true"></i>
+          <input type="search" id="g-busca" placeholder="Buscar em demandas e documentos" autocomplete="off"
+                 aria-controls="g-busca-resultado">
+          <kbd>/</kbd>
+        </label>
+        <div class="g-busca__resultado" id="g-busca-resultado" role="listbox" hidden></div>
+      </div>
+
+      <div class="g-topo__direita">
+        <!-- Desligados com conta ativa no cofre (desligados.js); só para quem vê o cofre. -->
+        <div class="g-sino-area" id="g-sino-area" hidden>
+          <button type="button" class="g-icone-btn g-sino" id="g-sino" aria-expanded="false" aria-controls="g-sino-painel">
+            <i class="ri-notification-3-line" aria-hidden="true"></i>
+            <span class="g-sino__qtd" id="g-sino-qtd"></span>
+          </button>
+          <!-- Resumo só informativo; o tratamento é pelo card da Visão Geral. -->
+          <div class="g-sino__painel" id="g-sino-painel" role="dialog" aria-label="Avisos do cofre" hidden></div>
+        </div>
+        <!-- Quem mais está no painel agora (CtiPresenca). -->
+        <div class="g-online" id="g-online" aria-live="polite">
+          <span class="g-online__pilha" id="g-online-pilha"></span>
+          <span class="g-online__texto" id="g-online-texto">Conectando…</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Outro usuário gravou algo enquanto este usuário tem um formulário aberto. -->
+    <div class="g-faixa" id="g-faixa-atualizacao" role="status" hidden>
+      <i class="ri-refresh-line" aria-hidden="true"></i>
+      <span>Um colega alterou dados do painel. O formulário aberto foi mantido.</span>
+      <button type="button" class="g-btn g-btn--fantasma g-btn--p" id="g-atualizar-agora">Descartar e atualizar</button>
+    </div>
+    <!-- Grupo dos responsáveis ainda não escolhido (só aparece para o SUP). -->
+    <div class="g-faixa g-faixa--alerta" id="g-faixa-grupo" role="status" hidden>
+      <i class="ri-error-warning-line" aria-hidden="true"></i>
+      <span>Nenhum grupo de responsáveis escolhido. Escolha o grupo dos desenvolvedores em
+        <strong>Configurações › Responsáveis</strong> para poder atribuir demandas.</span>
+    </div>
+
+    <main class="g-conteudo g-conteudo--visao" id="g-conteudo">
+
+      <!-- =============================== VISÃO GERAL ============================= -->
+      <section class="g-visao g-visao--ativa" id="visao-visaogeral" aria-labelledby="t-visaogeral">
+        <div class="g-cab">
+          <div>
+            <h1 class="g-cab__titulo" id="t-visaogeral">Visão geral</h1>
+            <p class="g-cab__sub" id="vg-saudacao">Indicadores e demandas da equipe de TI</p>
+          </div>
+          <div class="g-cab__acoes">
+            <button type="button" class="g-btn g-btn--primario" data-nova-demanda data-requer="incluir">
+              <i class="ri-add-line" aria-hidden="true"></i> Nova demanda
+            </button>
+          </div>
+        </div>
+
+        <div class="g-kpis" id="vg-kpis"></div>
+
+        <section class="g-bloco g-bloco--demandas">
+            <header class="g-bloco__cab">
+              <h2>Demandas em aberto</h2>
+              <div class="g-segmentos" role="group" aria-label="Recorte da tabela" id="vg-recorte">
+                <button type="button" class="g-segmento g-segmento--ativo" data-recorte="abertas">Todas</button>
+                <button type="button" class="g-segmento" data-recorte="minhas">Minhas</button>
+                <button type="button" class="g-segmento" data-recorte="atrasadas">Atrasadas</button>
+                <button type="button" class="g-segmento" data-recorte="semresp">Sem responsável</button>
+              </div>
+            </header>
+            <div class="g-tabela-rolagem">
+              <table class="g-tabela g-tabela--visao">
+                <thead>
+                  <tr>
+                    <th scope="col">Código</th>
+                    <th scope="col">Demanda</th>
+                    <th scope="col">Categoria</th>
+                    <th scope="col">Prioridade</th>
+                    <th scope="col">Setor</th>
+                    <th scope="col">Solicitante</th>
+                    <th scope="col">Responsável</th>
+                    <th scope="col">Criada</th>
+                    <th scope="col">Prazo</th>
+                    <th scope="col">Situação</th>
+                  </tr>
+                </thead>
+                <tbody id="vg-tabela"><tr><td colspan="10" class="g-vazio">Carregando…</td></tr></tbody>
+              </table>
+            </div>
+        </section>
+      </section>
+
+      <!-- ================================= KANBAN ================================ -->
+      <section class="g-visao" id="visao-kanban" aria-labelledby="t-kanban" hidden>
+        <div class="g-cab">
+          <div>
+            <h1 class="g-cab__titulo" id="t-kanban">Kanban</h1>
+            <p class="g-cab__sub">Arraste os cards entre as colunas para mudar a situação da demanda
+              <i class="ri-question-line g-ajuda" tabindex="0" role="img"
+                 aria-label="Sem mouse: abra o card com Enter e use Mover para. Selo verde: colega com a demanda aberta. Selo âmbar: colega editando."
+                 title="Sem mouse: abra o card com Enter e use “Mover para”.&#10;Selo verde com iniciais: colega com a demanda aberta.&#10;Selo âmbar: colega editando."></i></p>
+          </div>
+          <div class="g-cab__acoes">
+            <button type="button" class="g-btn g-btn--fantasma" id="kb-limpar">
+              <i class="ri-filter-off-line" aria-hidden="true"></i> Limpar filtros
+            </button>
+            <button type="button" class="g-btn g-btn--primario" data-nova-demanda data-requer="incluir">
+              <i class="ri-add-line" aria-hidden="true"></i> Nova demanda
+            </button>
+          </div>
+        </div>
+
+        <div class="g-filtros" aria-label="Filtros do quadro">
+          <div class="g-filtros__linha">
+            <label class="g-campo g-campo--inline">
+              <span>Responsável</span>
+              <select id="kb-resp"></select>
+            </label>
+            <label class="g-campo g-campo--inline">
+              <span>Setor</span>
+              <select id="kb-setor"></select>
+            </label>
+            <label class="g-campo g-campo--inline">
+              <span>Prioridade</span>
+              <select id="kb-prioridade"><!-- opções com ícone por CtiApp.opcoesPrioridade (kanban.js) --></select>
+            </label>
+            <label class="g-campo g-campo--inline">
+              <span>Concluídas</span>
+              <select id="kb-dias" title="Demandas concluídas há mais tempo saem do quadro">
+                <option value="15">últimos 15 dias</option>
+                <option value="60" selected>últimos 60 dias</option>
+                <option value="180">últimos 180 dias</option>
+                <option value="0">todas</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div class="g-quadro" id="kb-quadro" aria-label="Quadro de demandas"></div>
+      </section>
+
+      <!-- ============================== DOCUMENTAÇÃO ============================= -->
+      <section class="g-visao" id="visao-documentos" aria-labelledby="t-documentos" hidden>
+        <div class="g-cab">
+          <div>
+            <h1 class="g-cab__titulo" id="t-documentos">Documentação</h1>
+            <p class="g-cab__sub">Base de conhecimento: procedures, triggers, scripts, rotinas e arquivos-fonte</p>
+          </div>
+          <div class="g-cab__acoes">
+            <button type="button" class="g-btn g-btn--primario" id="dc-novo" data-requer="incluir">
+              <i class="ri-add-line" aria-hidden="true"></i> Novo documento
+            </button>
+          </div>
+        </div>
+
+        <div class="g-docs">
+          <nav class="g-docs__tipos" id="dc-tipos" aria-label="Tipos de documento"></nav>
+          <div class="g-docs__lista g-bloco" id="dc-painel-lista">
+            <header class="g-bloco__cab">
+              <h2 id="dc-titulo-lista">Todos os documentos</h2>
+              <div class="g-docs__filtros">
+                <select id="dc-categoria" aria-label="Categoria"></select>
+                <small id="dc-contagem"></small>
+              </div>
+            </header>
+            <div id="dc-lista" class="g-docs__itens"></div>
+          </div>
+          <div class="g-docs__leitor g-bloco" id="dc-painel-leitor" hidden></div>
+        </div>
+      </section>
+
+      <!-- ================================= COFRE ================================= -->
+      <!-- Painel com os KPIs dos tipos de conta; o clique abre a grade (cofre.js, modo "grade"). -->
+      <section class="g-visao g-cofre" id="visao-cofre" aria-labelledby="t-cofre" hidden>
+        <div class="g-cab">
+          <div class="g-cofre__titulo">
+            <button type="button" class="g-btn g-btn--fantasma" id="cr-voltar" hidden>
+              <i class="ri-arrow-left-line" aria-hidden="true"></i> Voltar
+            </button>
+            <div>
+              <h1 class="g-cab__titulo" id="t-cofre">Cofre de acessos</h1>
+              <p class="g-cab__sub" id="cr-sub">Escolha um tipo de conta. Senhas cifradas no banco; cada senha vista fica no log.</p>
+            </div>
+          </div>
+          <div class="g-cab__acoes">
+            <button type="button" class="g-btn g-btn--primario" id="cr-novo">
+              <i class="ri-add-line" aria-hidden="true"></i> Novo acesso
+            </button>
+          </div>
+        </div>
+        <div class="g-faixa g-faixa--alerta g-cofre__faixa" id="cr-faixa" role="status" hidden></div>
+        <div class="g-kpis g-cofre__kpis" aria-label="Tipos de conta" id="cr-abas"></div>
+        <div class="g-bloco g-cofre__grade" id="cr-grade" hidden>
+          <header class="g-bloco__cab">
+            <input type="search" id="cr-busca" class="g-cofre__filtro" placeholder="Filtrar por login, nome, código, unidade, cargo…" autocomplete="off" aria-label="Filtrar acessos">
+            <div class="g-cofre__atalhos" id="cr-atalhos" role="group" aria-label="Filtro rápido por domínio" hidden></div>
+            <!-- Lixeira da seleção sempre colada ao Limpar filtros, à direita (com ou sem os botões de domínio). -->
+            <div class="g-cofre__barra-acoes">
+              <button type="button" class="g-btn g-btn--perigo g-btn--p" id="cr-excluir-sel" hidden><i class="ri-delete-bin-line" aria-hidden="true"></i> <span></span></button>
+              <button type="button" class="g-btn g-btn--fantasma g-btn--p" id="cr-exportar" hidden
+                      title="Salvar os e-mails em planilha do Excel, sem senha: só os selecionados ou, sem seleção, a grade com os filtros aplicados">
+                <i class="ri-file-excel-2-line" aria-hidden="true"></i> Exportar</button>
+              <button type="button" class="g-btn g-btn--fantasma g-btn--p" id="cr-limpar-filtros"><i class="ri-filter-off-line" aria-hidden="true"></i> Limpar filtros</button>
+            </div>
+          </header>
+          <div id="cr-lista" class="g-cofre__lista"></div>
+        </div>
+      </section>
+
+      <!-- ============================== CONFIGURAÇÕES ============================ -->
+      <section class="g-visao" id="visao-config" aria-labelledby="t-config" hidden>
+        <div class="g-cab">
+          <div>
+            <h1 class="g-cab__titulo" id="t-config">Configurações</h1>
+            <p class="g-cab__sub" id="cf-sub">Kanban, categorias, documentação, setores e responsáveis</p>
+          </div>
+        </div>
+        <p class="g-aviso-leitura" data-somente-leitura>
+          <i class="ri-lock-line" aria-hidden="true"></i>
+          <span><strong>Somente leitura.</strong> Só o SUP edita e vê todas as opções.</span>
+        </p>
+
+        <div class="g-abas" role="tablist" id="cf-abas">
+          <button type="button" role="tab" class="g-aba g-aba--ativa" data-aba="colunas" aria-selected="true">
+            <i class="ri-layout-column-line" aria-hidden="true"></i> Kanban
+          </button>
+          <button type="button" role="tab" class="g-aba" data-aba="categorias" aria-selected="false">
+            <i class="ri-price-tag-3-line" aria-hidden="true"></i> Categorias
+          </button>
+          <button type="button" role="tab" class="g-aba" data-aba="documentacao" aria-selected="false">
+            <i class="ri-book-2-line" aria-hidden="true"></i> Documentação
+          </button>
+          <button type="button" role="tab" class="g-aba" data-aba="setores" aria-selected="false">
+            <i class="ri-building-2-line" aria-hidden="true"></i> Setores
+          </button>
+          <button type="button" role="tab" class="g-aba" data-aba="responsaveis" aria-selected="false">
+            <i class="ri-user-settings-line" aria-hidden="true"></i> Responsáveis
+          </button>
+          <button type="button" role="tab" class="g-aba" data-aba="solicitantes" aria-selected="false">
+            <i class="ri-user-voice-line" aria-hidden="true"></i> Solicitantes
+          </button>
+          <button type="button" role="tab" class="g-aba" data-aba="cofre" aria-selected="false" id="cf-aba-cofre" hidden>
+            <i class="ri-safe-2-line" aria-hidden="true"></i> Cofre
+          </button>
+          <button type="button" role="tab" class="g-aba" data-aba="hostgator" aria-selected="false" id="cf-aba-hostgator" hidden>
+            <i class="ri-cloud-line" aria-hidden="true"></i> HostGator
+          </button>
+        </div>
+        <div id="cf-painel" role="tabpanel"></div>
+      </section>
+    </main>
+    <!-- Fora da rolagem: permanece no limite inferior da área útil e reserva espaço para o conteúdo. -->
+    <div class="g-rodape-fixo" id="cf-rodape" role="region" aria-label="Alterações não salvas" hidden>
+      <span class="g-rodape-fixo__texto"><i class="ri-edit-circle-line" aria-hidden="true"></i>
+        <span class="g-rodape-fixo__linhas"><strong id="cf-rodape-titulo"></strong><small id="cf-rodape-nome"></small></span></span>
+      <div class="g-rodape-fixo__acoes">
+        <button type="button" class="g-btn g-btn--cancelar" id="cf-rodape-descartar">Descartar</button>
+        <button type="button" class="g-btn g-btn--primario" id="cf-rodape-salvar"><i class="ri-save-line" aria-hidden="true"></i> Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================= MODAL ================================== -->
+  <div class="g-modal" id="g-modal" hidden>
+    <div class="g-modal__caixa" role="dialog" aria-modal="true" aria-labelledby="g-modal-titulo">
+      <header class="g-modal__cab">
+        <h3 id="g-modal-titulo"></h3>
+        <button type="button" class="g-icone-btn g-icone-btn--fechar" id="g-modal-fechar" aria-label="Fechar" title="Fechar">
+          <i class="ri-close-line" aria-hidden="true"></i>
+        </button>
+      </header>
+      <p class="g-modal__presenca" id="g-modal-presenca" role="status" hidden></p>
+      <div class="g-modal__corpo" id="g-modal-corpo"></div>
+      <footer class="g-modal__rodape" id="g-modal-rodape"></footer>
+    </div>
+  </div>
+
+  <!-- Erro explicado pela própria tela; os detalhes técnicos ficam disponíveis para o suporte. -->
+  <!--
+    Erro no mesmo desenho da FC_FORMATAHTML das triggers: "Atenção", "Motivo" e
+    "Solução" com rótulo em negrito na mesma linha; no pé, as informações para
+    o implantador (detalhe técnico, recolhido).
+  -->
+  <div class="g-erro-modal" id="g-erro-modal" hidden>
+    <div class="g-erro-modal__caixa" role="alertdialog" aria-modal="true" aria-labelledby="g-erro-contexto" aria-describedby="g-erro-mensagem">
+      <header class="g-erro-modal__cab">
+        <i class="ri-error-warning-fill g-erro-modal__icone g-anima-alerta" aria-hidden="true"></i>
+        <h3 id="g-erro-contexto">Não foi possível concluir</h3>
+        <button type="button" class="g-icone-btn g-icone-btn--fechar" id="g-erro-fechar-x" aria-label="Fechar" title="Fechar">
+          <i class="ri-close-line" aria-hidden="true"></i>
+        </button>
+      </header>
+      <div class="g-erro-modal__corpo">
+        <!-- Logo servido pelo próprio Om (funciona sem internet); se faltar, some sem quebrar o modal. -->
+        <p class="g-erro-modal__logo" id="g-erro-logo"><img src="/mge/img/logo-sankhya-354x80.png" alt="Sankhya"></p>
+        <p class="g-erro-modal__linha"><b>Atenção:</b> <span id="g-erro-mensagem"></span></p>
+        <p class="g-erro-modal__linha" id="g-erro-motivo-linha" hidden><b>Motivo:</b> <span id="g-erro-motivo"></span></p>
+        <p class="g-erro-modal__linha" id="g-erro-solucao-linha" hidden><b>Solução:</b> <span id="g-erro-solucao"></span></p>
+        <!-- Sempre visível: é o que a equipe de TI usa para achar a trigger/serviço que bloqueou. -->
+        <section class="g-erro-modal__suporte" id="g-erro-detalhes">
+          <h4>Informações para o implantador e/ou equipe de TI</h4>
+          <code id="g-erro-tecnico"></code>
+        </section>
+      </div>
+      <footer class="g-erro-modal__rodape">
+        <button type="button" class="g-btn g-btn--primario" id="g-erro-fechar">OK</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Espera da HostGator (ou de outro serviço lento): bloqueia o modal até a resposta. -->
+  <div class="g-carregando" id="g-carregando" hidden>
+    <div class="g-carregando__caixa" role="status" aria-live="polite">
+      <span class="g-carregando__roda" aria-hidden="true"></span>
+      <div>
+        <p class="g-carregando__texto" id="g-carregando-texto">Aguarde…</p>
+        <p class="g-carregando__sub" id="g-carregando-sub">Não feche a tela.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resumo de operação em lote: o que deu certo e cada conta que falhou, com o motivo. -->
+  <div class="g-lote" id="g-lote" hidden>
+    <div class="g-lote__caixa" role="alertdialog" aria-modal="true" aria-labelledby="g-lote-titulo" tabindex="-1" id="g-lote-caixa">
+      <header class="g-lote__cab">
+        <i class="ri-error-warning-fill g-erro-modal__icone" aria-hidden="true"></i>
+        <h3 id="g-lote-titulo">Resultado</h3>
+        <button type="button" class="g-icone-btn g-icone-btn--fechar" id="g-lote-fechar-x" aria-label="Fechar" title="Fechar">
+          <i class="ri-close-line" aria-hidden="true"></i>
+        </button>
+      </header>
+      <div class="g-lote__corpo" id="g-lote-corpo"></div>
+      <footer class="g-lote__rodape" id="g-lote-rodape">
+        <button type="button" class="g-btn g-btn--primario" id="g-lote-ok">OK</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Confirmação dentro da tela (fica por cima do modal). -->
+  <div class="g-confirma" id="g-confirma" hidden>
+    <div class="g-confirma__caixa" role="alertdialog" aria-modal="true" aria-labelledby="g-confirma-titulo" aria-describedby="g-confirma-texto">
+      <span class="g-confirma__icone" id="g-confirma-icone" aria-hidden="true"></span>
+      <h3 id="g-confirma-titulo"></h3>
+      <p id="g-confirma-texto" aria-live="polite"></p>
+      <ul class="g-confirma__topicos" id="g-confirma-topicos" hidden></ul>
+      <div class="g-confirma__acoes" id="g-confirma-acoes">
+        <button type="button" class="g-btn g-btn--cancelar" id="g-confirma-cancelar">Cancelar</button>
+        <button type="button" class="g-btn g-btn--primario" id="g-confirma-ok">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!--
+    Retorno das ações, no centro e com ícone animado: sucesso e informação
+    somem em 2,5 s sem travar a tela; alerta e erro esperam o OK. Erro de
+    serviço também chega aqui ou no modal de erro, nunca só no console.
+  -->
+  <div class="g-retorno" id="g-retorno" hidden>
+    <div class="g-retorno__caixa" id="g-retorno-caixa" role="status" aria-live="polite" aria-labelledby="g-retorno-titulo" aria-describedby="g-retorno-texto">
+      <span class="g-retorno__icone" id="g-retorno-icone" aria-hidden="true"></span>
+      <h3 class="g-retorno__titulo" id="g-retorno-titulo"></h3>
+      <p class="g-retorno__texto" id="g-retorno-texto"></p>
+      <button type="button" class="g-btn g-btn--primario" id="g-retorno-ok">OK</button>
+    </div>
+  </div>
+</div>
+</sk-application>
