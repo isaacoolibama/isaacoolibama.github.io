@@ -17,7 +17,7 @@ HTML, CSS e JavaScript puros — sem build step, hospedado no GitHub Pages.
 │   └── files/Curriculo_Isaac_Oolibama.pdf
 └── demos/
     └── gestao-ti/          # demonstração ao vivo do add-on (dados fictícios)
-        ├── index.html      # moldura que simula a área de trabalho do ERP
+        ├── index.html      # moldura com perfil, dicas e tela cheia
         ├── painel.html     # carrega a tela pelo manifesto painel/demo.json
         └── painel/         # GERADO: não editar à mão
 ```
