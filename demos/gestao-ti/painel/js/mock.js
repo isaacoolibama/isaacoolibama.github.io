@@ -378,7 +378,7 @@ var CtiMock = (function () {
   // ------------------------------------------------------------ HostGator
   // Simulação da integração: chamada demora ~1,2 s (mostra o carregamento) e
   // e-mail com "erro" no endereço é recusado, para ver o modal e o resumo.
-  var hg = { ativo: true, host: 'servidor.exemplo.com.br', porta: 2083, usuario: 'usuario_cpanel', tokenConfigurado: true,
+  var hg = { ativo: true, host: 'servidor.exemplo.com.br', porta: 8443, usuario: 'usuario_cpanel', tokenConfigurado: true,
     dhToken: agora(60 * 24 * 3), timeout: 20, destStarlink: 'ti@empresa-demo.com.br', cotaMb: 0, boasVindas: false,
     equipRedir: 'REDIRECIONAMENTO', dhTeste: agora(90), resultadoTeste: 'OK: 3 domínio(s) de e-mail na conta, resposta em 412 ms.', versao: 2 };
   var hgLog = [];

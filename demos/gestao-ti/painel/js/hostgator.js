@@ -285,7 +285,7 @@ var CtiHostGator = (function () {
           '<label class="g-campo"><span class="g-obrigatorio">Servidor do cPanel</span><input type="text" id="hg-host" maxlength="120" value="' + u.esc(c.host || '') + '" placeholder="servidor.exemplo.com.br"></label>' +
           '<div class="g-hg__par">' +
             '<label class="g-campo"><span class="g-obrigatorio">Usuário do cPanel</span><input type="text" id="hg-usuario" maxlength="60" value="' + u.esc(c.usuario || '') + '"></label>' +
-            '<label class="g-campo g-hg__curto"><span>Porta</span><input type="number" id="hg-porta" min="1" max="65535" value="' + Number(c.porta || 2083) + '"></label>' +
+            '<label class="g-campo g-hg__curto"><span>Porta</span><input type="number" id="hg-porta" min="1" max="65535" value="' + Number(c.porta || 8443) + '"></label>' +
           '</div>' +
           '<div class="g-hg__par">' +
             '<label class="g-campo"><span' + (c.tokenConfigurado ? '' : ' class="g-obrigatorio"') + '>Token de API</span>' +
